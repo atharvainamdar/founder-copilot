@@ -106,16 +106,30 @@ export type ChatOptions = {
   maxTokens?: number;
 };
 
+/**
+ * gpt-5 / o1 / o3 / o4 reasoning models reject `max_tokens` and `temperature`
+ * and require `max_completion_tokens` instead.
+ */
+function isReasoningModel(model: string): boolean {
+  return /^(gpt-5|o[134])/i.test(model);
+}
+
 async function rawChat(messages: ChatMessage[], opts: ChatOptions = {}) {
   const provider = resolveProvider();
-  const body = {
+  const model = opts.model ?? provider.model;
+  const reasoning = isReasoningModel(model);
+  const body: Record<string, unknown> = {
     ...provider.bodyExtras,
-    model: opts.model ?? provider.model,
+    model,
     messages,
-    temperature: opts.temperature ?? 0.4,
-    max_tokens: opts.maxTokens ?? 4000,
     response_format: { type: "json_object" as const },
   };
+  if (reasoning) {
+    body.max_completion_tokens = opts.maxTokens ?? 4000;
+  } else {
+    body.max_tokens = opts.maxTokens ?? 4000;
+    body.temperature = opts.temperature ?? 0.4;
+  }
 
   const res = await fetch(provider.url, {
     method: "POST",

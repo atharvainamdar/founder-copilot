@@ -71,12 +71,18 @@ export const wizardInputSchema = z.object({
 });
 export type WizardInput = z.infer<typeof wizardInputSchema>;
 
+// LLMs are flaky about whether amounts come back as numbers or strings
+// ("Up to ₹10 lakh" vs 50000). Accept both and normalize to string for display.
+const flexibleAmount = z
+  .union([z.string(), z.number()])
+  .transform((v) => (typeof v === "number" ? `₹${v.toLocaleString("en-IN")}` : v));
+
 export const schemeSuggestionSchema = z.object({
   name: z.string(),
   category: z.enum(["bank_loan", "govt_scheme", "subsidy", "grant", "tax_benefit"]),
   description: z.string(),
   eligibility: z.string(),
-  approxAmountInr: z.string().describe("e.g. 'Up to ₹10 lakh' or 'Varies'"),
+  approxAmountInr: flexibleAmount.describe("e.g. 'Up to ₹10 lakh' or 'Varies'"),
   applyHint: z.string().describe("Where / how to apply, in 1-2 sentences."),
   fitScore: z.number().min(0).max(100),
 });
@@ -86,7 +92,7 @@ export const documentItemSchema = z.object({
   why: z.string(),
   authority: z.string(),
   estimatedTimeDays: z.number().nullable().optional(),
-  estimatedFeeInr: z.string().optional(),
+  estimatedFeeInr: flexibleAmount.optional(),
 });
 
 export const wizardPlanSchema = z.object({
