@@ -59,7 +59,10 @@ export default function HomePage() {
       const text = Array.from(event.results)
         .map((r) => r[0]?.transcript ?? "")
         .join(" ");
-      update("idea", (form.idea ? form.idea + " " : "") + text);
+      setForm((prev) => ({
+        ...prev,
+        idea: (prev.idea ? prev.idea + " " : "") + text,
+      }));
     };
     rec.onerror = () => setListening(false);
     rec.onend = () => setListening(false);

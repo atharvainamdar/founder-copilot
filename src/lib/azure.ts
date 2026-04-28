@@ -168,10 +168,14 @@ export async function chatJSON<T>(
       return schema.parse(parsed);
     } catch (e) {
       lastError = e;
+      // Echo the model's bad response back so it can correct its specific mistake.
+      messages.push({ role: "assistant", content: raw });
+      const detail = e instanceof Error ? e.message.slice(0, 400) : String(e);
       messages.push({
         role: "user",
         content:
           "Your previous response did not match the required JSON schema. " +
+          `Validator said: ${detail}\n` +
           "Reply again with ONLY a valid JSON object that matches the schema.",
       });
     }
