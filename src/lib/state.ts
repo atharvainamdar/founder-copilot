@@ -24,35 +24,48 @@ function subscribe(cb: () => void) {
   };
 }
 
-function safeGet<T>(key: string): T | null {
+const snapshotCache = new Map<string, { raw: string | null; value: unknown }>();
+
+function getCachedSnapshot<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
   const raw = window.sessionStorage.getItem(key);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return null;
+  const cached = snapshotCache.get(key);
+  if (cached && cached.raw === raw) {
+    return cached.value as T | null;
   }
+  let value: T | null = null;
+  if (raw) {
+    try {
+      value = JSON.parse(raw) as T;
+    } catch {
+      value = null;
+    }
+  }
+  snapshotCache.set(key, { raw, value });
+  return value;
 }
 
 function safeSet(key: string, value: unknown) {
   if (typeof window === "undefined") return;
-  window.sessionStorage.setItem(key, JSON.stringify(value));
+  const raw = JSON.stringify(value);
+  window.sessionStorage.setItem(key, raw);
+  snapshotCache.set(key, { raw, value });
   emit();
 }
 
 function safeClear(key: string) {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(key);
+  snapshotCache.set(key, { raw: null, value: null });
   emit();
 }
 
 export const sessionState = {
-  getIntake: () => safeGet<Intake>(KEY_INTAKE),
+  getIntake: () => getCachedSnapshot<Intake>(KEY_INTAKE),
   setIntake: (v: Intake) => safeSet(KEY_INTAKE, v),
-  getFeasibility: () => safeGet<Feasibility>(KEY_FEASIBILITY),
+  getFeasibility: () => getCachedSnapshot<Feasibility>(KEY_FEASIBILITY),
   setFeasibility: (v: Feasibility) => safeSet(KEY_FEASIBILITY, v),
-  getPlan: () => safeGet<WizardPlan>(KEY_PLAN),
+  getPlan: () => getCachedSnapshot<WizardPlan>(KEY_PLAN),
   setPlan: (v: WizardPlan) => safeSet(KEY_PLAN, v),
   clearAll: () => {
     safeClear(KEY_INTAKE);
@@ -61,11 +74,6 @@ export const sessionState = {
   },
 };
 
-/**
- * useSyncExternalStore-based hook so we never call setState inside an effect.
- * Returns `undefined` during SSR / before hydration; resolves to the stored
- * value (or `null` if missing) after first paint on the client.
- */
 function useSessionValue<T>(reader: () => T | null): T | null | undefined {
   return useSyncExternalStore(
     subscribe,
