@@ -87,8 +87,13 @@ export default function HomePage() {
           body: JSON.stringify(parsed.data),
         });
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `Analysis failed (${res.status})`);
+          let msg = `Analysis failed (${res.status})`;
+          try {
+            const json = (await res.json()) as { error?: string };
+            if (json?.error) msg = json.error;
+          } catch {
+          }
+          throw new Error(msg);
         }
         const feasibility = await res.json();
         sessionState.setFeasibility(feasibility);

@@ -120,8 +120,13 @@ export default function WizardPage() {
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(text || `Plan failed (${res.status})`);
+          let msg = `Plan failed (${res.status})`;
+          try {
+            const json = (await res.json()) as { error?: string };
+            if (json?.error) msg = json.error;
+          } catch {
+          }
+          throw new Error(msg);
         }
         const next = (await res.json()) as WizardPlan;
         sessionState.setPlan(next);
