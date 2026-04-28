@@ -49,7 +49,10 @@ export default function AnalyzePage() {
   const router = useRouter();
   const intake = useIntake();
   const feas = useFeasibility();
-  const [chosenPivot, setChosenPivot] = useState<string | null>(null);
+  const [chosenPivot, setChosenPivot] = useState<{
+    title: string;
+    why: string;
+  } | null>(null);
 
   useEffect(() => {
     if (intake === null || feas === null) {
@@ -76,9 +79,8 @@ export default function AnalyzePage() {
   function approveAndContinue() {
     if (!intake) return;
     if (chosenPivot && feas) {
-      // If the user picked a pivot, fold it into intake.idea so the wizard
-      // builds a plan around the new idea.
-      const next: Intake = { ...intake, idea: chosenPivot };
+      const merged = `${chosenPivot.title} — ${chosenPivot.why}`;
+      const next: Intake = { ...intake, idea: merged };
       sessionState.setIntake(next);
     }
     router.push("/wizard");
@@ -204,12 +206,14 @@ export default function AnalyzePage() {
         >
           <div className="grid gap-3 md:grid-cols-2">
             {feas.pivots.map((p) => {
-              const active = chosenPivot === p.title;
+              const active = chosenPivot?.title === p.title;
               return (
                 <button
                   key={p.title}
                   type="button"
-                  onClick={() => setChosenPivot(active ? null : p.title)}
+                  onClick={() =>
+                    setChosenPivot(active ? null : { title: p.title, why: p.why })
+                  }
                   className={`flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors ${
                     active
                       ? "border-accent bg-accent-soft/30"
@@ -253,7 +257,7 @@ export default function AnalyzePage() {
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {chosenPivot
-                ? `Continue with pivot: "${chosenPivot}"`
+                ? `Continue with pivot: "${chosenPivot.title}"`
                 : `Continue with original idea`}
             </span>
             <span className="text-xs text-foreground/60">
