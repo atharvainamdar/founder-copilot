@@ -244,7 +244,7 @@ function PricingSection({
             />
             <Stat
               label="Break-even / month"
-              value={`${Math.ceil(pricing.breakEvenUnitsPerMonth)} ${pricing.unitName}s`}
+              value={`${Math.ceil(pricing.breakEvenUnitsPerMonth)} ${pluralize(pricing.unitName)}`}
             />
             <Stat
               label="Fixed costs / month"
@@ -408,6 +408,14 @@ function NumberField({
       />
     </div>
   );
+}
+
+function pluralize(word: string): string {
+  const w = word.trim();
+  if (!w) return w;
+  if (/(s|x|z|ch|sh)$/i.test(w)) return `${w}es`;
+  if (/[^aeiou]y$/i.test(w)) return `${w.slice(0, -1)}ies`;
+  return `${w}s`;
 }
 
 function todayIso() {
