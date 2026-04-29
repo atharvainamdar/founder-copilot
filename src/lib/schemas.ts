@@ -119,3 +119,132 @@ export const wizardPlanSchema = z.object({
     .describe("Day-by-week / phase milestones for the first 30 days."),
 });
 export type WizardPlan = z.infer<typeof wizardPlanSchema>;
+
+export const draftDocInputSchema = z.object({
+  intake: intakeSchema,
+  plan: wizardPlanSchema,
+  itemName: z.string().min(2),
+});
+export type DraftDocInput = z.infer<typeof draftDocInputSchema>;
+
+export const draftDocSchema = z.object({
+  title: z.string(),
+  summary: z.string(),
+  authority: z.string(),
+  portalUrl: z.string().nullable().optional(),
+  estimatedTimeDays: z.number().nullable().optional(),
+  estimatedFeeInr: flexibleAmount.optional(),
+  prerequisites: z.array(z.string()),
+  steps: z
+    .array(
+      z.object({
+        title: z.string(),
+        detail: z.string(),
+      }),
+    )
+    .min(3),
+  fieldsToFill: z
+    .array(
+      z.object({
+        label: z.string(),
+        example: z.string(),
+        required: z.boolean(),
+      }),
+    )
+    .optional(),
+  draftDocumentMarkdown: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      "If this compliance item is itself a document the founder needs to draft (e.g. partnership deed, society permission letter, client waiver, basic privacy policy), include a ready-to-edit markdown draft here. Leave empty for registrations that are filed on a govt portal.",
+    ),
+  caveats: z.array(z.string()).optional(),
+});
+export type DraftDoc = z.infer<typeof draftDocSchema>;
+
+export const marketingInputSchema = z.object({
+  intake: intakeSchema,
+  plan: wizardPlanSchema,
+});
+export type MarketingInput = z.infer<typeof marketingInputSchema>;
+
+export const marketingKitSchema = z.object({
+  brandIdentity: z.object({
+    nameSuggestions: z.array(z.string()).min(3),
+    tagline: z.string(),
+    valueProp: z.string(),
+    voice: z.string(),
+    palette: z
+      .array(
+        z.object({
+          name: z.string(),
+          hex: z.string().regex(/^#[0-9a-fA-F]{6}$/u),
+        }),
+      )
+      .min(3)
+      .max(6),
+  }),
+  channels: z.object({
+    googleBusinessProfile: z.object({
+      name: z.string(),
+      description: z.string(),
+      categories: z.array(z.string()).min(1),
+    }),
+    whatsappBusiness: z.object({
+      shortBio: z.string(),
+      welcomeMessage: z.string(),
+      awayMessage: z.string(),
+      broadcastTemplate: z.string(),
+    }),
+    instagram: z.object({
+      bio: z.string(),
+      firstPosts: z
+        .array(
+          z.object({
+            caption: z.string(),
+            hashtags: z.array(z.string()).min(3),
+          }),
+        )
+        .min(3),
+    }),
+    justdial: z.string(),
+    societyNoticeFlyerMarkdown: z.string(),
+  }),
+  referralProgram: z.object({
+    pitch: z.string(),
+    rewardStructure: z.string(),
+    sampleMessage: z.string(),
+  }),
+  launchOffers: z.array(z.string()).min(3),
+});
+export type MarketingKit = z.infer<typeof marketingKitSchema>;
+
+export const pricingInputSchema = z.object({
+  intake: intakeSchema,
+  plan: wizardPlanSchema,
+});
+export type PricingInput = z.infer<typeof pricingInputSchema>;
+
+export const pricingPlanSchema = z.object({
+  unitName: z.string().describe("e.g. 'class', 'session', 'order', 'consultation'"),
+  pricePerUnitInr: z.number().positive(),
+  pricingRationale: z.string(),
+  recommendedBatchSize: z.number().int().positive().nullable().optional(),
+  recommendedSessionsPerWeek: z.number().int().positive().nullable().optional(),
+  fixedCostsPerMonthInr: z.number().nonnegative(),
+  variableCostPerUnitInr: z.number().nonnegative(),
+  breakEvenUnitsPerMonth: z.number().positive(),
+  threeTierPackages: z
+    .array(
+      z.object({
+        name: z.string(),
+        priceInr: z.number().positive(),
+        includes: z.array(z.string()).min(2),
+      }),
+    )
+    .min(3)
+    .max(3),
+  notes: z.array(z.string()),
+});
+export type PricingPlan = z.infer<typeof pricingPlanSchema>;

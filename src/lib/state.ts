@@ -1,11 +1,21 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { Feasibility, Intake, WizardPlan } from "@/lib/schemas";
+import type {
+  DraftDoc,
+  Feasibility,
+  Intake,
+  MarketingKit,
+  PricingPlan,
+  WizardPlan,
+} from "@/lib/schemas";
 
 const KEY_INTAKE = "fc:intake";
 const KEY_FEASIBILITY = "fc:feasibility";
 const KEY_PLAN = "fc:plan";
+const KEY_DOCS = "fc:docs";
+const KEY_MARKETING = "fc:marketing";
+const KEY_PRICING = "fc:pricing";
 
 const listeners = new Set<() => void>();
 function emit() {
@@ -60,6 +70,9 @@ function safeClear(key: string) {
   emit();
 }
 
+type DocsCache = Record<string, DraftDoc>;
+const EMPTY_DOCS: DocsCache = Object.freeze({}) as DocsCache;
+
 export const sessionState = {
   getIntake: () => getCachedSnapshot<Intake>(KEY_INTAKE),
   setIntake: (v: Intake) => safeSet(KEY_INTAKE, v),
@@ -67,10 +80,23 @@ export const sessionState = {
   setFeasibility: (v: Feasibility) => safeSet(KEY_FEASIBILITY, v),
   getPlan: () => getCachedSnapshot<WizardPlan>(KEY_PLAN),
   setPlan: (v: WizardPlan) => safeSet(KEY_PLAN, v),
+  getDocs: (): DocsCache =>
+    getCachedSnapshot<DocsCache>(KEY_DOCS) ?? EMPTY_DOCS,
+  setDoc: (itemName: string, doc: DraftDoc) => {
+    const all = sessionState.getDocs();
+    safeSet(KEY_DOCS, { ...all, [itemName]: doc });
+  },
+  getMarketing: () => getCachedSnapshot<MarketingKit>(KEY_MARKETING),
+  setMarketing: (v: MarketingKit) => safeSet(KEY_MARKETING, v),
+  getPricing: () => getCachedSnapshot<PricingPlan>(KEY_PRICING),
+  setPricing: (v: PricingPlan) => safeSet(KEY_PRICING, v),
   clearAll: () => {
     safeClear(KEY_INTAKE);
     safeClear(KEY_FEASIBILITY);
     safeClear(KEY_PLAN);
+    safeClear(KEY_DOCS);
+    safeClear(KEY_MARKETING);
+    safeClear(KEY_PRICING);
   },
 };
 
@@ -86,3 +112,13 @@ export const useIntake = () => useSessionValue(() => sessionState.getIntake());
 export const useFeasibility = () =>
   useSessionValue(() => sessionState.getFeasibility());
 export const usePlan = () => useSessionValue(() => sessionState.getPlan());
+export const useDocs = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => sessionState.getDocs(),
+    () => EMPTY_DOCS,
+  );
+export const useMarketing = () =>
+  useSessionValue(() => sessionState.getMarketing());
+export const usePricing = () =>
+  useSessionValue(() => sessionState.getPricing());

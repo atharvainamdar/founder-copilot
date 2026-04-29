@@ -361,7 +361,9 @@ function PlanView({ plan }: { plan: WizardPlan }) {
           </span>
           <CardTitle>Compliance checklist</CardTitle>
           <CardDescription className="ml-1">
-            (Documents module coming next — will auto-draft these)
+            <Link href="/docs" className="underline-offset-2 hover:underline">
+              Open Compliance studio →
+            </Link>
           </CardDescription>
         </div>
         <ul className="space-y-2 text-sm">
@@ -399,7 +401,9 @@ function PlanView({ plan }: { plan: WizardPlan }) {
           </span>
           <CardTitle>Marketing starter</CardTitle>
           <CardDescription className="ml-1">
-            (Marketing studio module coming next)
+            <Link href="/marketing" className="underline-offset-2 hover:underline">
+              Open Marketing studio →
+            </Link>
           </CardDescription>
         </div>
         <ul className="space-y-1.5 text-sm">
@@ -431,9 +435,38 @@ function PlanView({ plan }: { plan: WizardPlan }) {
         </ol>
       </Card>
 
-      <p className="text-center text-xs text-foreground/50">
-        Coming next: Documents · Marketing Studio · Invoicing & Accounts
-      </p>
+      <Card className="fade-up flex flex-col gap-3 border-dashed">
+        <div className="flex items-center gap-2">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent-soft/50 text-accent">
+            <Sparkles className="h-4 w-4" />
+          </span>
+          <CardTitle>Now let&apos;s actually go and do this.</CardTitle>
+        </div>
+        <CardDescription>
+          Pick where you want to dive in next. Each module is grounded in this
+          plan and your locality.
+        </CardDescription>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Link href="/docs">
+            <Button variant="secondary" className="w-full justify-between">
+              Compliance docs
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/marketing">
+            <Button variant="secondary" className="w-full justify-between">
+              Marketing studio
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/ops">
+            <Button variant="secondary" className="w-full justify-between">
+              Operations
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </Card>
     </div>
   );
 }
